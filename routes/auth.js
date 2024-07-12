@@ -13,7 +13,7 @@ const sendOTP = require('../utils/nodemailer')
 
 
 // endpoint for user to sign-up
-route.post('./signup', async (req, res) => {
+route.post('/signup', async (req, res) => {
 
     // request the name , email and password from the body
     const { name, email, password } = req.body;
@@ -30,6 +30,7 @@ route.post('./signup', async (req, res) => {
             return res.status(400).send({ status: 'User email already exists' });
         }
 
+
         // hash the user password
         const hashPassword = await bcrypt.hash(password, 10);
 
@@ -38,6 +39,8 @@ route.post('./signup', async (req, res) => {
         newUser.name = name
         newUser.email = email
         newUser.password = hashPassword
+        newUser.otp = ''
+        newUser.otpTime = ''
 
         // save the new user in the database
         await newUser.save()
@@ -93,75 +96,73 @@ route.post('/login', async (req, res) => {
     }
 })
 
-// endpoint when the user forgets password
+// Endpoint for when the user forgets password
 route.post('/forget-password', async (req, res) => {
-    const { email } = req.body  // destructioning the request body
+    const { email } = req.body;
 
     try {
         if (!email) {
-            return res.status(400).send({ 'status': 'Error', 'msg': 'all fields must be filled' });
+            return res.status(400).send({ status: 'Error', msg: 'All fields must be filled' });
         }
-        // find the user in the databse
-        const user = await User.findOne({ email })
+
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).send('User with this email does not exist.');
         }
 
-        // generate a otp number with crypto js
-        const otp = crypto.randomInt(10000, 999999).toString()
-
-        // update the user otp field
+        const otp = crypto.randomInt(10000, 999999).toString();
         user.otp = otp;
-        user.otpTime = Date.now() + 5 * 60 * 1000 // 5 minute for the otp to expire
-        sendOTP(email, otp)
+        user.otpTime = Date.now() + 5 * 60 * 1000; // 5 minutes for the OTP to expire
 
-        return res.status(200).send({ status: 'ok', msg: 'otp send succesfully to ' + email }); ``
+        await sendOTP(email, otp);
+
+        await user.save();
+
+        res.status(200).send({ status: 'OK', msg: `OTP sent successfully to ${email}` });
+    } catch (error) {
+        console.error('Error during forget password:', error);
+        res.status(500).send({ status: 'Some error occurred', msg: error.message });
     }
-    catch (error) {
-        console.error(error);
-        // Sending error response if something goes wrong
-        res.status(500).send({ status: "some error occurred", msg: error.message });
-    }
-})
+});
+
 
 //  verify if the otp sent is the same as the otp user wrote
-route.post('/verofy-otp', async (req, res) => {
-    const { otp } = req.body // destrustioning from the body
+route.post('/verify-otp', async (req, res) => {
+    const { otp } = req.body; // destructuring from the body
 
     try {
-        //  test for ifany of the filed is empty
+        // Check if any of the fields is empty
         if (!otp) {
             return res.status(400).send({ status: 'All fields must be filled' });
         }
-        // find the user inthe database with the email
-        const user = User.findOne({ otp })
+
+        // Find the user in the database with the OTP
+        const user = await User.findOne({ otp });
         if (!user) {
             return res.status(400).send({ status: 'Invalid or expired OTP' });
         }
 
-        // when the user otp sent from clienct isnt correct with the otp sent from the server 
+        // When the user's OTP sent from client isn't correct with the OTP sent from the server
         if (user.otp !== otp || user.otpTime < Date.now()) {
-            user.otp = null
-            user.otpTime = null
-            await user.save
+            user.otp = null;
+            user.otpTime = null;
+            await user.save();
 
             return res.status(400).send({ status: 'Invalid or expired OTP' });
         }
 
-        //  when the otp is correct and not yet expired
+        // When the OTP is correct and not yet expired
         user.otp = null;
-        user.otpExpires = null;
+        user.otpTime = null;
         await user.save();
 
         res.status(200).send({ status: 'OTP verified successfully' });
-
-    }
-    catch {
+    } catch (error) {
         console.error('Error during OTP verification:', error);
         res.status(500).send({ status: 'Internal Server Error', msg: error.message });
-
     }
-})
+});
+
 
 // endpoint for resetting password
 route.post('/password-reset', async (req, res) => {
