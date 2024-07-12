@@ -18,7 +18,8 @@ const transport = nodemailer.createTransport({
 const sendOTP = async (email, otp) => {
   try {
     const info = await transport.sendMail({
-      from: process.env.MAIL_USER,
+      
+      from: `Backend Team <${process.env.MAIL_USER}>`,
       to: email,
       subject: "One Time Password",
       html: `<p style="line-height: 1.5">
