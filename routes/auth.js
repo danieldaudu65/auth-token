@@ -46,13 +46,13 @@ route.post('/signup', async (req, res) => {
         await newUser.save()
 
         // send the sccesss and the details to the client
-        res.status(200).status({ status: 'User Created Successfully', user: newUser })
+        res.status(200).send({ status: 'User Created Successfully', user: newUser })
     }
     catch (error) {
         console.error('Error Creating user' + error);
         res.status(500).send({ status: 'Internal Server Error' });
     }
-})
+}) 
 
 // endpoint for user to login 
 route.post('/login', async (req, res) => {
@@ -148,7 +148,7 @@ route.post('/verify-otp', async (req, res) => {
             user.otpTime = null;
             await user.save();
 
-            return res.status(400).send({ status: 'Invalid or expired OTP' });
+            return res.status(400).send({ status: 'Invalid or  OTP' });
         }
 
         // When the OTP is correct and not yet expired
@@ -199,6 +199,6 @@ route.post('/password-reset', async (req, res) => {
         console.error('Error during password reset:', error);
         res.status(500).send({ status: 'Internal Server Error', msg: error.message });
     }
-});
+}); 
 
 module.exports = route
