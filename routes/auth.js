@@ -16,11 +16,11 @@ const sendOTP = require('../utils/nodemailer')
 route.post('/signup', async (req, res) => {
 
     // request the name , email and password from the body
-    const { name, email, password } = req.body;
+    const { name, email, password, number } = req.body;
 
     try {
         // Check if the required fiiled is missing
-        if (!name || !password || !email) {
+        if (!name || !password || !email || !number) {
             return res.status(400).send({ status: 'Please fill in all required fields' });
         }
 
@@ -39,6 +39,7 @@ route.post('/signup', async (req, res) => {
         newUser.name = name
         newUser.email = email
         newUser.password = hashPassword
+        newUser.number = number
         newUser.otp = ''
         newUser.otpTime = ''
 
