@@ -9,4 +9,4 @@ const userSchema = new mongoose.Schema({
     otpTime: Date
 }, {collection: 'user'})
 
-module.exports = mongoose.model('user', userSchema)
+module.exports = mongoose.model('user', userSchema) 

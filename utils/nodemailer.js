@@ -24,9 +24,10 @@ const sendOTP = async (email, otp) => {
       subject: "One Time Password",
       html: `<p style="line-height: 1.5">
         Your OTP verification code is: <br /> <br />
-        <font size="3">${otp}</font> <br />
+        <font size="3px">${otp}</font> <br />
+        Please note that this otp will be valid for 5 minutes
         Best regards,<br />
-        Team MiniProject.
+        The Backend Team.
         </p>
         </div>`,
     });

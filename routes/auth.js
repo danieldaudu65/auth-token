@@ -28,7 +28,7 @@ route.post('/signup', async (req, res) => {
         const user = await User.findOne({ email });
         if (user) {
             return res.status(400).send({ status: 'User email already exists' });
-        }
+        } 
 
 
         // hash the user password
